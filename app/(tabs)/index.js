@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet } from "react-native";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import Notification from './notificationscreen'
 
 export default function Index() {
   return (
