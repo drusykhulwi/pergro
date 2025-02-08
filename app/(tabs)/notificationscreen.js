@@ -5,9 +5,9 @@ export default function Notes() {
   return (
     <View style={styles.container}>
       <View style={styles.topnav}>
-        <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" /><View><Text>ADD</Text><Ionicons name="add" size={32} color="#ffffff" /></View>
+        <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
       </View>
-      <Text style={styles.text}>NO NOTIFICATIONS YET</Text>
+      <Text style={styles.text}>NO NOTIFICATION YET</Text>
     </View>
   );
 }
