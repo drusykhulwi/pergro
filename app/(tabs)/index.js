@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 export default function Index() {
   return (
     <View style={styles.container}>
-      {/* Apply the correct style for top navigation */}
       <View style={styles.topnav}>
         <Ionicons name="menu-outline" size={32} color="#ffffff" /><Ionicons name="notifications-outline" size={32} color="#ffffff" />
       </View>

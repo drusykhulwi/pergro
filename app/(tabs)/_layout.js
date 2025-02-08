@@ -27,7 +27,7 @@ export default function TabLayout() {
 
             {/* Floating Add Button */}
             <Tabs.Screen 
-                name="notificationscreen" // This should match the file inside the app/(tabs)/add.tsx or add.js
+                name="notificationscreen" 
                 options={{
                     title: '',
                     tabBarButton: (props) => <CustomAddButton {...props} />,
