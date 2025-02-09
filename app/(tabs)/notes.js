@@ -1,12 +1,17 @@
-import { Text, View, StyleSheet, ScrollView } from "react-native"; 
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native"; 
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native"; 
 
 export default function Notes() {
+  const navigation = useNavigation();
+  
   return (
     <View style={styles.container}>
       {/* Top Navigation */}
       <View style={styles.topnav}>
-        <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
+        </TouchableOpacity>
         <View style={styles.addButton}>
           <Text style={styles.text}>ADD</Text>
           <Ionicons name="add" size={32} color="#ffffff" />

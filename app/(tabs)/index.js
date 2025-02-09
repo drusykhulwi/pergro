@@ -1,13 +1,18 @@
-import { Text, View, StyleSheet, Image } from "react-native";
+import { Text, View, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-// import Notification from './notificationscreen';
+import { useNavigation } from "@react-navigation/native"; 
 
 export default function Index() {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <View style={styles.topnav}>
-        <Ionicons name="menu-outline" size={32} color="#ffffff" /><Ionicons name="notifications-outline" size={32} color="#ffffff" />
+        <Ionicons name="menu-outline" size={32} color="#ffffff" />
+        <TouchableOpacity onPress={() => navigation.navigate("notificationscreen")}>
+          <Ionicons name="notifications-outline" size={32} color="#ffffff" />
+        </TouchableOpacity>
       </View>
       <Text style={styles.text}>What's up, Charlene</Text>
       <View style={styles.progressContainer}>

@@ -1,11 +1,16 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Notes() {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <View style={styles.topnav}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
+      </TouchableOpacity>
       </View>
       <Text style={styles.text}>NO NOTIFICATION YET</Text>
     </View>

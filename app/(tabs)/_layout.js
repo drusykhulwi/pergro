@@ -1,6 +1,7 @@
+import React, { useState } from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Modal, Text } from "react-native";
 
 export default function TabLayout() {
     return (
@@ -30,7 +31,7 @@ export default function TabLayout() {
                 name="notificationscreen" 
                 options={{
                     title: '',
-                    tabBarButton: (props) => <CustomAddButton {...props} />,
+                    tabBarButton: () => <CustomAddButton />,
                 }}
             />
 
@@ -49,11 +50,55 @@ export default function TabLayout() {
 }
 
 // Custom Floating Plus Button
-const CustomAddButton = ({ onPress }) => (
-    <TouchableOpacity style={styles.addButton} onPress={onPress}>
-        <Ionicons name="add" size={30} color="black" />
-    </TouchableOpacity>
-);
+const CustomAddButton = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+
+    return (
+        <View>
+            <TouchableOpacity 
+                style={styles.addButton} 
+                onPress={() => setModalVisible(true)}
+            >
+                <Ionicons name="add" size={30} color="black" />
+            </TouchableOpacity>
+
+            {/* Modal for Popup */}
+            <Modal 
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalBackground}>
+                    <View style={styles.speechBubble}>
+                        {/* Popup Menu Items */}
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="clipboard-outline" size={24} color="#FF9900" />
+                            <Text style={styles.menuText}>Task</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="refresh-outline" size={24} color="#FF9900" />
+                            <Text style={styles.menuText}>Goal</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Ionicons name="glasses-outline" size={24} color="#FF9900" />
+                            <Text style={styles.menuText}>Resolution</Text>
+                        </TouchableOpacity>
+
+                        {/* Close Button */}
+                        <TouchableOpacity 
+                            style={styles.closeButton} 
+                            onPress={() => setModalVisible(false)}
+                        >
+                            <Ionicons name="close" size={28} color="black" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+};
+
 
 // Styles
 const styles = StyleSheet.create({
@@ -72,6 +117,46 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.3,
         shadowRadius: 4,
+    },
+    modalBackground: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    speechBubble: {
+        width: 220,
+        backgroundColor: "white",
+        borderRadius: 20,
+        paddingVertical: 20,
+        alignItems: "center",
+        elevation: 10,
+        position: "relative",
+    },
+    menuItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 15,
+        width: "100%",
+    },
+    menuText: {
+        fontSize: 18,
+        marginLeft: 10,
+        fontWeight: "600",
+        color: "#333",
+    },
+    closeButton: {
+        width: 50,
+        height: 50,
+        backgroundColor: "white",
+        borderRadius: 25,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        bottom: -25,
+        borderWidth: 2,
+        borderColor: "#eee",
     },
 });
 
