@@ -23,7 +23,7 @@ export default function Notes() {
       <View style={styles.titleContainer}>
         <Text style={styles.titleText}>Today</Text>
       </View>
-      
+
       <View style={styles.timelineWrapper}>
         <View style={styles.timelineContainer}>
           <View style={styles.progressLine} />
@@ -46,8 +46,27 @@ export default function Notes() {
           </View>
         </View>
       </View>
+
       <View style={styles.titleContainer}>
         <Text style={styles.titleText}>Yesterday</Text>
+      </View>
+      <View style={styles.timelineWrapper}>
+        <View style={styles.timelineContainer}>
+          <View style={styles.progressLine} />
+          <View style={styles.circle} />
+          <View style={styles.circle} />
+          <View style={styles.circle} />
+        </View>
+        <View style={styles.notes}>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesTitle}>Work Meeting</Text>
+            <Text style={styles.notesText}>Yesterday App Development</Text>
+          </View>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesTitle}>Welcome to my Pitch Day</Text>
+            <Text style={styles.notesText}>Yesterday App Development</Text>
+          </View>
+        </View>
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.titleText}>Previous 7 Days</Text>
@@ -134,7 +153,7 @@ const styles = StyleSheet.create({
   timelineContainer: {
     alignItems: "center",
     justifyContent: "space-around",
-    height: 170,
+    height: "auto",
     marginRight: 10, // Spacing between timeline and notes
     top: 33,
   },
