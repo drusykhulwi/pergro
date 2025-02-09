@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native"; 
+import { Text, View, StyleSheet, ScrollView } from "react-native"; 
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Notes() {
@@ -70,6 +70,28 @@ export default function Notes() {
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.titleText}>Previous 7 Days</Text>
+      </View>
+      <View style={styles.timelineWrapper}>
+        <View style={styles.timelineContainer}>
+          <View style={styles.progressLine} />
+          <View style={styles.circle} />
+          <View style={styles.circle} />
+          <View style={styles.circle} />
+        </View>
+        <View style={styles.notes}>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesTitle}>2024 PLAN</Text>
+            <Text style={styles.notesText}>Saturday Win</Text>
+          </View>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesTitle}>Todos</Text>
+            <Text style={styles.notesText}>Friday App Development</Text>
+          </View>
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesTitle}>Todos</Text>
+            <Text style={styles.notesText}>Saturday App Development</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -153,7 +175,7 @@ const styles = StyleSheet.create({
   timelineContainer: {
     alignItems: "center",
     justifyContent: "space-around",
-    height: "auto",
+    height: 170,
     marginRight: 10, // Spacing between timeline and notes
     top: 33,
   },
@@ -182,7 +204,7 @@ const styles = StyleSheet.create({
   notesContainer: {
     backgroundColor: "#484848",
     borderRadius: 20,
-    width: "70%",
+    width: "90%",
     height: 50,
     top: 27,
     padding: 10,
