@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { Tabs } from "expo-router";
+import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, TouchableOpacity, StyleSheet, Modal, Text } from "react-native";
+import { useNavigation } from "@react-navigation/native"; 
 
 export default function TabLayout() {
     return (
@@ -52,6 +54,7 @@ export default function TabLayout() {
 // Custom Floating Plus Button
 const CustomAddButton = () => {
     const [modalVisible, setModalVisible] = useState(false);
+    const navigation = useNavigation();
 
     return (
         <View>
@@ -72,9 +75,14 @@ const CustomAddButton = () => {
                 <View style={styles.modalBackground}>
                     <View style={styles.speechBubble}>
                         {/* Popup Menu Items */}
-                        <TouchableOpacity style={styles.menuItem}>
+                        <TouchableOpacity 
+                            style={styles.menuItem} 
+                            onPress={() => {
+                                setModalVisible(false);  // Close Modal
+                            }}
+                        >
                             <Ionicons name="clipboard-outline" size={24} color="#FF9900" />
-                            <Text style={styles.menuText}>Task</Text>
+                            <Link href="task" style={styles.menuText}>Task</Link>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem}>
                             <Ionicons name="refresh-outline" size={24} color="#FF9900" />
