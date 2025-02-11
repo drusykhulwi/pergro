@@ -84,9 +84,14 @@ const CustomAddButton = () => {
                             <Ionicons name="clipboard-outline" size={24} color="#FF9900" />
                             <Link href="task" style={styles.menuText}>Task</Link>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
+                        <TouchableOpacity 
+                            style={styles.menuItem}
+                            onPress={() => {
+                                    setModalVisible(false);  // Close Modal
+                                }}
+                        >
                             <Ionicons name="refresh-outline" size={24} color="#FF9900" />
-                            <Text style={styles.menuText}>Goal</Text>
+                            <Link href="goal" style={styles.menuText}>Goal</Link>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem}>
                             <Ionicons name="glasses-outline" size={24} color="#FF9900" />
