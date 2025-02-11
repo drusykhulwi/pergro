@@ -82,7 +82,7 @@ const CustomAddButton = () => {
                             }}
                         >
                             <Ionicons name="clipboard-outline" size={24} color="#FF9900" />
-                            <Link href="task" style={styles.menuText}>Task</Link>
+                            <Link href="task" style={styles.menuText}>Tasks</Link>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={styles.menuItem}
@@ -91,11 +91,11 @@ const CustomAddButton = () => {
                                 }}
                         >
                             <Ionicons name="refresh-outline" size={24} color="#FF9900" />
-                            <Link href="goal" style={styles.menuText}>Goal</Link>
+                            <Link href="goal" style={styles.menuText}>Goals</Link>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem}>
                             <Ionicons name="glasses-outline" size={24} color="#FF9900" />
-                            <Text style={styles.menuText}>Resolution</Text>
+                            <Link href="resolution" style={styles.menuText}>Resolutions</Link>
                         </TouchableOpacity>
 
                         {/* Close Button */}
