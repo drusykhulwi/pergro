@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import moment from "moment";
 import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
 
 export default function task() {
   const [selectedDate, setSelectedDate] = useState(moment().format("YYYY-MM-DD"));
@@ -32,7 +33,7 @@ export default function task() {
             <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
           </TouchableOpacity>
           <View style={styles.addButton}>
-            <Text style={styles.text}>ADD</Text>
+            <Link href="addtasks" style={styles.text}>ADD</Link>
             <Ionicons name="add" size={32} color="#ffffff" />
           </View>
         </View>
