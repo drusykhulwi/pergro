@@ -5,12 +5,14 @@ import { db } from "../firebase/firebaseConfig"; // Firestore connection
 import moment from "moment"; // For date formatting
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import DateTimePicker from "@react-native-community/datetimepicker"; // Calendar picker
 
 const task = () => {
   const [selectedDate, setSelectedDate] = useState(moment()); // Default: today
   const [tasks, setTasks] = useState([]);
   const [weekDays, setWeekDays] = useState([]);
   const navigation = useNavigation();
+  const [showCalendar, setShowCalendar] = useState(false); // Controls calendar visibility
 
   // 🔹 Generate Week Dates
   useEffect(() => {
@@ -34,6 +36,14 @@ const task = () => {
     fetchTasks();
   }, [selectedDate]);
 
+  // 🔹 Open Calendar & Select Date
+  const onDateChange = (event, selected) => {
+    if (selected) {
+      setSelectedDate(moment(selected)); // Update selected date
+      setWeekStart(moment(selected).startOf("week")); // Adjust week view
+    }
+    setShowCalendar(false); // Close calendar
+  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -49,6 +59,7 @@ const task = () => {
         </TouchableOpacity>
         </View>
         <Text style={styles.textHeader}>TASKS</Text>
+        {/* 🔹 Calendar Header */}
         <View style={styles.weekContainer}>
           {weekDays.map((day, index) => (
             <TouchableOpacity
@@ -65,8 +76,24 @@ const task = () => {
           ))}
         </View>
       </View>  
-      {/* 🔹 Calendar Header */}
       
+      {/* 🔹 Current Month & Calendar Button */}
+      <View style={styles.calendarContainer}>
+        <TouchableOpacity onPress={() => setShowCalendar(true)}>
+          <Ionicons name="calendar-outline" size={17} color="#FFFF00" />
+        </TouchableOpacity>
+        <Text style={styles.monthText}>{selectedDate.format("MMMM YYYY")}</Text>
+      </View>
+
+      {/* 🔹 Date Picker */}
+      {showCalendar && (
+        <DateTimePicker
+          value={new Date(selectedDate)}
+          mode="date"
+          display="default"
+          onChange={onDateChange}
+        />
+      )}
 
       {/* 🔹 Task List */}
       <Text style={styles.heading}>TODAY'S TASKS</Text>
@@ -145,6 +172,9 @@ const styles = StyleSheet.create({
   selectedDay: { backgroundColor: "#08A6EA" },
   dayText: { color: "#AEAEAE", fontSize: 16 },
   dateText: { color: "#AEAEAE", fontSize: 18, fontWeight: "bold" },
+  // 🔹 Month & Calendar Icon Styling
+  calendarContainer: { width: "30%", flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 15 },
+  monthText: { color:"#FFFF00", fontSize: 13, fontWeight: "bold" },
   heading: { color: "#fff", fontSize: 18, fontWeight: "bold", marginBottom: 10 },
   taskItem: { backgroundColor: "#222", padding: 15, borderRadius: 10, marginVertical: 5 },
   taskTitle: { color: "#fff", fontSize: 16, fontWeight: "bold" },
