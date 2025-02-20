@@ -1,52 +1,103 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
-import moment from "moment";
-import { useNavigation } from "@react-navigation/native";
+import { db } from "../firebase/firebaseConfig"; // Import Firestore
 
-export default function AddTask() { //No need to pass navigation as a prop
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [startTime, setStartTime] = useState("10:00");
-  const [endTime, setEndTime] = useState("11:00");
+const addtasks = ({ onClose }) => {
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskTime, setTaskTime] = useState("");
+  const [taskDate, setTaskDate] = useState("");
 
-  const navigation = useNavigation(); // Correctly get navigation
+  // 🔹 Function to Add Task to Firestore
+  const handleSubmit = async () => {
+    if (taskTitle && taskTime && taskDate) {
+      try {
+        await addDoc(collection(db, "tasks"), {
+          title: taskTitle,
+          time: taskTime,
+          date: taskDate,
+          type: "own", // Default task type
+        });
 
-  const addTask = async () => {
-    try {
-      await addDoc(collection(db, "tasks"), {
-        title,
-        description,
-        startTime,
-        endTime,
-        date: moment().format("YYYY-MM-DD"),
-        userId: "user123",
-        status: "pending",
-        type: "one-time",
-      });
-      navigation.goBack(); // Correctly navigate back
-    } catch (error) {
-      console.error("Error adding task:", error);
+        // Reset input fields
+        setTaskTitle("");
+        setTaskTime("");
+        setTaskDate("");
+
+        // Close modal after submission
+        onClose();
+      } catch (error) {
+        console.error("Error adding task:", error);
+      }
     }
   };
 
   return (
     <View style={styles.container}>
-      <TextInput placeholder="Task Title" style={styles.input} onChangeText={setTitle} />
-      <TextInput placeholder="Description" style={styles.input} onChangeText={setDescription} />
-      <TextInput placeholder="Start Time" style={styles.input} onChangeText={setStartTime} />
-      <TextInput placeholder="End Time" style={styles.input} onChangeText={setEndTime} />
-      <TouchableOpacity style={styles.button} onPress={addTask}>
-        <Text style={styles.buttonText}>Add Task</Text>
+      <Text style={styles.heading}>Add New Task</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Task Title"
+        placeholderTextColor="#bbb"
+        value={taskTitle}
+        onChangeText={setTaskTitle}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Time (e.g., 10:00 AM - 12:00 PM)"
+        placeholderTextColor="#bbb"
+        value={taskTime}
+        onChangeText={setTaskTime}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Date (e.g., May 25th)"
+        placeholderTextColor="#bbb"
+        value={taskDate}
+        onChangeText={setTaskDate}
+      />
+
+      <TouchableOpacity style={styles.addButton} onPress={handleSubmit}>
+        <Text style={styles.addText}>ADD TASK</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+        <Text style={styles.cancelText}>CANCEL</Text>
       </TouchableOpacity>
     </View>
   );
-}
+};
 
+// 🔹 Styles for UI
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#000" },
-  input: { backgroundColor: "#2E2E2E", color: "#fff", padding: 10, margin: 10 },
-  button: { backgroundColor: "#08A6EA", padding: 15, alignItems: "center", margin: 10 },
-  buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  container: { flex: 1, backgroundColor: "#000", padding: 20, justifyContent: "center" },
+  heading: { color: "#ffffff", fontSize: 20, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  input: {
+    backgroundColor: "#222",
+    color: "#ffffff",
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  addButton: {
+    backgroundColor: "#1e1e1e",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  addText: { color: "#ffffff", fontSize: 16, fontWeight: "bold" },
+  cancelButton: {
+    backgroundColor: "#333",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  cancelText: { color: "#bbb", fontSize: 16 },
 });
+
+export default addtasks;
