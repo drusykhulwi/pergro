@@ -5,13 +5,13 @@ import { db } from "../firebase/firebaseConfig";
 import moment from "moment";
 import { useNavigation } from "@react-navigation/native";
 
-export default function AddTask() { // ❌ No need to pass navigation as a prop
+export default function AddTask() { //No need to pass navigation as a prop
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("11:00");
 
-  const navigation = useNavigation(); // ✅ Correctly get navigation
+  const navigation = useNavigation(); // Correctly get navigation
 
   const addTask = async () => {
     try {
@@ -25,7 +25,7 @@ export default function AddTask() { // ❌ No need to pass navigation as a prop
         status: "pending",
         type: "one-time",
       });
-      navigation.goBack(); // ✅ Correctly navigate back
+      navigation.goBack(); // Correctly navigate back
     } catch (error) {
       console.error("Error adding task:", error);
     }
