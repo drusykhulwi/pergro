@@ -13,6 +13,8 @@ const task = () => {
   const [weekDays, setWeekDays] = useState([]);
   const navigation = useNavigation();
   const [showCalendar, setShowCalendar] = useState(false); // Controls calendar visibility
+  const [weekStart, setWeekStart] = useState(moment().startOf("week"));
+  const [modalVisible, setModalVisible] = useState(false);
 
   // 🔹 Generate Week Dates
   useEffect(() => {
@@ -52,11 +54,11 @@ const task = () => {
             <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <View style={styles.addButton}>
-            <Ionicons name="add" size={24} color="#ffffff" />
-            <Text style={styles.addText}>ADD</Text>
-          </View>
-        </TouchableOpacity>
+            <View style={styles.addButton}>
+              <Ionicons name="add" size={24} color="#ffffff" />
+              <Text style={styles.addText}>ADD</Text>
+            </View>
+          </TouchableOpacity>
         </View>
         <Text style={styles.textHeader}>TASKS</Text>
         {/* 🔹 Calendar Header */}
@@ -130,7 +132,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2E2E2E",
     height: 180,
     borderRadius: 20,
-    top: -2
+    top: -2,
   },
   topnav: {
     flexDirection: "row", 
@@ -164,11 +166,22 @@ const styles = StyleSheet.create({
     color: "#08A6EA", 
     fontSize: 30, 
     fontWeight: "600", 
-    textAlign: "center" 
+    textAlign: "center", 
   },
-  addText: { color: "#ffffff", fontSize: 16, marginLeft: 5 },
-  weekContainer: { width: "90%", flexDirection: "row", justifyContent: "space-between", marginBottom: 20, alignItems: "center", },
-  dayItem: { alignItems: "center", padding: 10, borderRadius: 8 },
+  addText: { 
+    color: "#ffffff", 
+    fontSize: 16, 
+    marginLeft: 5, 
+  },
+  weekContainer: { 
+    width: "90%", 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    marginBottom: 20, 
+    alignItems: "center", 
+  },
+  dayItem: { 
+    alignItems: "center", padding: 10, borderRadius: 8 },
   selectedDay: { backgroundColor: "#08A6EA" },
   dayText: { color: "#AEAEAE", fontSize: 16 },
   dateText: { color: "#AEAEAE", fontSize: 18, fontWeight: "bold" },

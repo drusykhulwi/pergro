@@ -89,7 +89,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  addText: { color: "#ffffff", fontSize: 16, fontWeight: "bold" },
+  addText: { 
+    color: "#ffffff", 
+    fontSize: 16, 
+    fontWeight: "bold" 
+  },
   cancelButton: {
     backgroundColor: "#333",
     padding: 15,
@@ -97,7 +101,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  cancelText: { color: "#bbb", fontSize: 16 },
+  cancelText: { 
+    color: "#bbb", 
+    fontSize: 16, 
+  },
 });
 
 export default addtasks;
