@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig"; // Import Firestore
+import { db } from "../firebase/firebaseConfig"; 
+import { useNavigation } from "expo-router"; 
 
 const addtasks = ({ onClose }) => {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskTime, setTaskTime] = useState("");
   const [taskDate, setTaskDate] = useState("");
+  const navigation = useNavigation();
 
   // 🔹 Function to Add Task to Firestore
   const handleSubmit = async () => {
@@ -25,7 +27,7 @@ const addtasks = ({ onClose }) => {
         setTaskDate("");
 
         // Close modal after submission
-        onClose();
+        navigation.goBack();
       } catch (error) {
         console.error("Error adding task:", error);
       }
