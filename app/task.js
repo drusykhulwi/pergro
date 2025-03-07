@@ -53,7 +53,7 @@ const task = () => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <TouchableOpacity onPress={() => navigation.navigate('addtasks')}>
             <View style={styles.addButton}>
               <Ionicons name="add" size={24} color="#ffffff" />
               <Text style={styles.addText}>ADD</Text>
