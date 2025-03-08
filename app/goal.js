@@ -58,11 +58,11 @@ export default function goal() {
   const navigateToCreateGoal = (goal) => {
     if (goal) {
       router.push({
-        pathname: "/create",
+        pathname: "/CreateGoalScreen",
         params: { goalId: goal.id }
       });
     } else {
-      router.push("/create");
+      router.push("/CreateGoalScreen");
     }
   };
 
