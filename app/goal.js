@@ -1,14 +1,272 @@
-import { Text, StyleSheet, View } from 'react-native'
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
+import { Ionicons } from '@expo/vector-icons';
 
-export default class goal extends Component {
-  render() {
+export default function goal() {
+  const router = useRouter();
+  const [goals, setGoals] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+  
+  // Function to format date to display
+  const formatDate = (date) => {
+    return `May 2023`;
+  };
+
+  // Function to fetch goals from Firestore
+  const fetchGoals = async () => {
+    try {
+      const goalsCollection = collection(db, 'goals');
+      const goalsSnapshot = await getDocs(goalsCollection);
+      const goalsList = goalsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setGoals(goalsList);
+    } catch (error) {
+      console.error("Error fetching goals: ", error);
+    }
+  };
+
+  // Fetch goals on component mount
+  useEffect(() => {
+    fetchGoals();
+  }, []);
+
+  // Function to generate calendar day numbers
+  const generateDayNumbers = () => {
+    const currentDate = new Date();
+    const dayNumbers = [];
+    
+    for (let i = -2; i <= 2; i++) {
+      const date = new Date(currentDate);
+      date.setDate(currentDate.getDate() + i);
+      dayNumbers.push({
+        day: daysOfWeek[date.getDay()],
+        date: date.getDate(),
+        selected: i === 0
+      });
+    }
+    
+    return dayNumbers;
+  };
+
+  // Navigate to create goal screen
+  const navigateToCreateGoal = (goal) => {
+    if (goal) {
+      router.push({
+        pathname: "/create",
+        params: { goalId: goal.id }
+      });
+    } else {
+      router.push("/create");
+    }
+  };
+
+  // Render goal item
+  const renderGoalItem = ({ item, index }) => {
+    const statusColors = {
+      'Work on Landing page': '#3498db',
+      'Apply to McKinsey': '#f39c12',
+      'Finish My Assignment': '#95a5a6'
+    };
+    
+    const getColor = () => {
+      return statusColors[item.title] || '#95a5a6';
+    };
+
+    const getDueDate = () => {
+      const date = new Date(item.dueDate?.seconds * 1000 || Date.now());
+      return `Due: ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    };
+
     return (
-      <View>
-        <Text>goal</Text>
+      <TouchableOpacity 
+        style={[styles.goalItem, index > 2 && styles.completedGoalItem]}
+        onPress={() => navigateToCreateGoal(item)}
+      >
+        <View style={styles.goalContent}>
+          <View style={styles.goalInfo}>
+            <Text style={styles.goalTitle}>{item.title}</Text>
+            <Text style={styles.goalDate}>{getDueDate()}</Text>
+          </View>
+          <View style={[styles.statusIndicator, { backgroundColor: getColor() }]} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  // Use sample data for initial render, will be replaced by Firebase data
+  const sampleGoals = [
+    { id: '1', title: 'Work on Landing page', dueDate: { seconds: (Date.now() + 86400000) / 1000 } },
+    { id: '2', title: 'Apply to McKinsey', dueDate: { seconds: (Date.now() + 172800000) / 1000 } },
+    { id: '3', title: 'Finish My Assignment', dueDate: { seconds: (Date.now() + 259200000) / 1000 } },
+    { id: '4', title: 'Finish My Assignment', dueDate: { seconds: (Date.now() + 345600000) / 1000 } },
+    { id: '5', title: 'Finish My Assignment', dueDate: { seconds: (Date.now() + 432000000) / 1000 } },
+  ];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.addButton} onPress={() => navigateToCreateGoal()}>
+          <Text style={styles.addButtonText}>ADD</Text>
+        </TouchableOpacity>
       </View>
-    )
-  }
+      
+      <Text style={styles.headerTitle}>GOALS</Text>
+      
+      <View style={styles.calendarContainer}>
+        {generateDayNumbers().map((day, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.dayContainer, 
+              day.selected && styles.selectedDayContainer
+            ]}
+          >
+            <Text style={styles.dayText}>{day.date}</Text>
+            <Text style={styles.weekdayText}>{day.day}</Text>
+            {day.selected && <View style={styles.selectedIndicator} />}
+          </View>
+        ))}
+      </View>
+      
+      <View style={styles.dateTextContainer}>
+        <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+      </View>
+      
+      <View style={styles.timelineContainer}>
+        <View style={styles.timeline} />
+        <FlatList
+          data={goals.length > 0 ? goals : sampleGoals}
+          renderItem={renderGoalItem}
+          keyExtractor={item => item.id}
+          style={styles.goalsList}
+        />
+      </View>
+    </SafeAreaView>
+  );
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    marginTop: 20,
+  },
+  backButton: {
+    padding: 5,
+  },
+  addButton: {
+    backgroundColor: '#333',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    borderRadius: 15,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  headerTitle: {
+    color: '#FF3B30',
+    fontSize: 24,
+    fontWeight: 'bold',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  calendarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+  },
+  dayContainer: {
+    alignItems: 'center',
+    padding: 10,
+  },
+  selectedDayContainer: {
+    backgroundColor: '#FFC700',
+    borderRadius: 5,
+    paddingHorizontal: 12,
+  },
+  dayText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  weekdayText: {
+    color: '#888',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  selectedIndicator: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#fff',
+    marginTop: 2,
+  },
+  dateTextContainer: {
+    alignItems: 'center',
+    marginVertical: 15,
+  },
+  dateText: {
+    color: '#888',
+    fontSize: 16,
+  },
+  timelineContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+  },
+  timeline: {
+    width: 2,
+    backgroundColor: '#FF3B30',
+    marginRight: 15,
+  },
+  goalsList: {
+    flex: 1,
+  },
+  goalItem: {
+    backgroundColor: '#222',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+  },
+  completedGoalItem: {
+    opacity: 0.5,
+  },
+  goalContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  goalInfo: {
+    flex: 1,
+  },
+  goalTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  goalDate: {
+    color: '#888',
+    fontSize: 12,
+  },
+  statusIndicator: {
+    width: 25,
+    height: 25,
+    borderRadius: 12.5,
+  },
+});
