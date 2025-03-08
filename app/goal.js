@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, SafeAreaView, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
@@ -9,11 +9,70 @@ export default function goal() {
   const router = useRouter();
   const [goals, setGoals] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+  const [isCalendarModalVisible, setCalendarModalVisible] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   
   // Function to format date to display
   const formatDate = (date) => {
-    return `May 2023`;
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  // Function to generate calendar day numbers based on selected date
+  const generateDayNumbers = () => {
+    const dayNumbers = [];
+    
+    for (let i = -2; i <= 2; i++) {
+      const date = new Date(selectedDate);
+      date.setDate(selectedDate.getDate() + i);
+      dayNumbers.push({
+        day: daysOfWeek[date.getDay()],
+        date: date.getDate(),
+        fullDate: date,
+        selected: i === 0
+      });
+    }
+    
+    return dayNumbers;
+  };
+
+  // Function to get days in month
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  // Generate days for the selected month and year
+  const generateMonthDays = () => {
+    const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
+    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1).getDay();
+    const days = [];
+    
+    // Add empty spaces for days before the first day of month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push({ date: '', empty: true });
+    }
+    
+    // Add actual days
+    for (let i = 1; i <= daysInMonth; i++) {
+      const fullDate = new Date(selectedYear, selectedMonth, i);
+      days.push({
+        date: i,
+        fullDate,
+        isToday: isToday(fullDate),
+      });
+    }
+    
+    return days;
+  };
+
+  // Check if a date is today
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
   };
 
   // Function to fetch goals from Firestore
@@ -36,24 +95,6 @@ export default function goal() {
     fetchGoals();
   }, []);
 
-  // Function to generate calendar day numbers
-  const generateDayNumbers = () => {
-    const currentDate = new Date();
-    const dayNumbers = [];
-    
-    for (let i = -2; i <= 2; i++) {
-      const date = new Date(currentDate);
-      date.setDate(currentDate.getDate() + i);
-      dayNumbers.push({
-        day: daysOfWeek[date.getDay()],
-        date: date.getDate(),
-        selected: i === 0
-      });
-    }
-    
-    return dayNumbers;
-  };
-
   // Navigate to create goal screen
   const navigateToCreateGoal = (goal) => {
     if (goal) {
@@ -64,6 +105,39 @@ export default function goal() {
     } else {
       router.push("/CreateGoalScreen");
     }
+  };
+
+  // Handle day selection
+  const handleDaySelection = (index, dayData) => {
+    const newSelectedDate = dayData.fullDate;
+    setSelectedDate(newSelectedDate);
+    
+    // Here you could fetch goals specific to this date if needed
+  };
+
+  // Handle month calendar day selection
+  const handleMonthDaySelection = (day) => {
+    if (!day.empty) {
+      setSelectedDate(day.fullDate);
+      setCalendarModalVisible(false);
+    }
+  };
+
+  // Change month
+  const changeMonth = (increment) => {
+    let newMonth = selectedMonth + increment;
+    let newYear = selectedYear;
+    
+    if (newMonth > 11) {
+      newMonth = 0;
+      newYear += 1;
+    } else if (newMonth < 0) {
+      newMonth = 11;
+      newYear -= 1;
+    }
+    
+    setSelectedMonth(newMonth);
+    setSelectedYear(newYear);
   };
 
   // Render goal item
@@ -79,7 +153,14 @@ export default function goal() {
     };
 
     const getDueDate = () => {
-      const date = new Date(item.dueDate?.seconds * 1000 || Date.now());
+      let date;
+      if (item.dueDate?.seconds) {
+        date = new Date(item.dueDate.seconds * 1000);
+      } else if (item.dueDate instanceof Date) {
+        date = item.dueDate;
+      } else {
+        date = new Date();
+      }
       return `Due: ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     };
 
@@ -108,6 +189,9 @@ export default function goal() {
     { id: '5', title: 'Finish My Assignment', dueDate: { seconds: (Date.now() + 432000000) / 1000 } },
   ];
 
+  const dayNumbers = generateDayNumbers();
+  const monthDays = generateMonthDays();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -122,24 +206,29 @@ export default function goal() {
       <Text style={styles.headerTitle}>GOALS</Text>
       
       <View style={styles.calendarContainer}>
-        {generateDayNumbers().map((day, index) => (
-          <View 
+        {dayNumbers.map((day, index) => (
+          <TouchableOpacity 
             key={index} 
             style={[
               styles.dayContainer, 
               day.selected && styles.selectedDayContainer
             ]}
+            onPress={() => handleDaySelection(index, day)}
           >
             <Text style={styles.dayText}>{day.date}</Text>
             <Text style={styles.weekdayText}>{day.day}</Text>
             {day.selected && <View style={styles.selectedIndicator} />}
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
       
-      <View style={styles.dateTextContainer}>
+      <TouchableOpacity 
+        style={styles.dateTextContainer}
+        onPress={() => setCalendarModalVisible(true)}
+      >
         <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
-      </View>
+        <Ionicons name="calendar-outline" size={18} color="#888" style={styles.calendarIcon} />
+      </TouchableOpacity>
       
       <View style={styles.timelineContainer}>
         <View style={styles.timeline} />
@@ -150,6 +239,87 @@ export default function goal() {
           style={styles.goalsList}
         />
       </View>
+
+      {/* Month Picker Modal */}
+      <Modal
+        visible={isCalendarModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setCalendarModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity onPress={() => changeMonth(-1)}>
+                <Ionicons name="chevron-back" size={24} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.calendarTitle}>{months[selectedMonth]} {selectedYear}</Text>
+              <TouchableOpacity onPress={() => changeMonth(1)}>
+                <Ionicons name="chevron-forward" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weekdayLabels}>
+              {daysOfWeek.map((day, index) => (
+                <Text key={index} style={styles.weekdayLabel}>{day}</Text>
+              ))}
+            </View>
+
+            <View style={styles.monthDaysContainer}>
+              {monthDays.map((day, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  style={[
+                    styles.monthDay,
+                    day.empty && styles.emptyDay,
+                    day.isToday && styles.todayDay,
+                    selectedDate && day.fullDate && 
+                    selectedDate.getDate() === day.fullDate.getDate() && 
+                    selectedDate.getMonth() === day.fullDate.getMonth() && 
+                    selectedDate.getFullYear() === day.fullDate.getFullYear() && 
+                    styles.selectedMonthDay
+                  ]}
+                  onPress={() => handleMonthDaySelection(day)}
+                  disabled={day.empty}
+                >
+                  <Text style={[
+                    styles.monthDayText,
+                    day.isToday && styles.todayDayText,
+                    selectedDate && day.fullDate && 
+                    selectedDate.getDate() === day.fullDate.getDate() && 
+                    selectedDate.getMonth() === day.fullDate.getMonth() && 
+                    selectedDate.getFullYear() === day.fullDate.getFullYear() && 
+                    styles.selectedMonthDayText
+                  ]}>
+                    {day.date}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity 
+                style={styles.modalButton}
+                onPress={() => {
+                  const today = new Date();
+                  setSelectedDate(today);
+                  setSelectedMonth(today.getMonth());
+                  setSelectedYear(today.getFullYear());
+                  setCalendarModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Today</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.closeButton]}
+                onPress={() => setCalendarModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -217,12 +387,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   dateTextContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginVertical: 15,
   },
   dateText: {
     color: '#888',
     fontSize: 16,
+  },
+  calendarIcon: {
+    marginLeft: 8,
   },
   timelineContainer: {
     flex: 1,
@@ -268,5 +443,91 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     borderRadius: 12.5,
+  },
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  calendarModalContent: {
+    width: '90%',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 15,
+    padding: 20,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  calendarTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  weekdayLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 10,
+  },
+  weekdayLabel: {
+    color: '#888',
+    width: 40,
+    textAlign: 'center',
+  },
+  monthDaysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  monthDay: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 2,
+  },
+  monthDayText: {
+    color: '#fff',
+  },
+  emptyDay: {
+    backgroundColor: 'transparent',
+  },
+  todayDay: {
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+    borderRadius: 20,
+  },
+  todayDayText: {
+    color: '#FF3B30',
+  },
+  selectedMonthDay: {
+    backgroundColor: '#FFC700',
+    borderRadius: 20,
+  },
+  selectedMonthDayText: {
+    color: '#000',
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 20,
+  },
+  modalButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    marginLeft: 10,
+    backgroundColor: '#333',
+  },
+  closeButton: {
+    backgroundColor: '#FF3B30',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

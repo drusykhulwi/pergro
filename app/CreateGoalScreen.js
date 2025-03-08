@@ -14,8 +14,38 @@ export default function CreateGoalScreen() {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerMode, setPickerMode] = useState('date'); // 'date' or 'time'
   const [delegate, setDelegate] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(2); // Middle day (today)
+  
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Function to format date to display
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  // Function to generate calendar day numbers
+  const generateDayNumbers = () => {
+    const currentDate = new Date();
+    const dayNumbers = [];
+    
+    for (let i = -2; i <= 2; i++) {
+      const date = new Date(currentDate);
+      date.setDate(currentDate.getDate() + i);
+      dayNumbers.push({
+        day: daysOfWeek[date.getDay()],
+        date: date.getDate(),
+        fullDate: date,
+        selected: i === 0
+      });
+    }
+    
+    return dayNumbers;
+  };
+
+  const daysList = generateDayNumbers();
 
   // Fetch goal details if editing an existing goal
   useEffect(() => {
@@ -27,7 +57,14 @@ export default function CreateGoalScreen() {
             const goalData = goalDoc.data();
             setTitle(goalData.title || '');
             setDescription(goalData.description || '');
-            setDate(new Date(goalData.dueDate?.seconds * 1000 || Date.now()));
+            
+            // Handle different date formats
+            if (goalData.dueDate?.seconds) {
+              setDate(new Date(goalData.dueDate.seconds * 1000));
+            } else if (goalData.dueDate instanceof Date) {
+              setDate(goalData.dueDate);
+            }
+            
             setDelegate(goalData.delegated || false);
           }
         } catch (error) {
@@ -38,6 +75,17 @@ export default function CreateGoalScreen() {
 
     fetchGoal();
   }, [goalId]);
+
+  // Function to handle day selection in the calendar
+  const handleDaySelection = (index) => {
+    setSelectedDayIndex(index);
+    
+    // Update the date based on the selected day
+    const newDate = new Date(daysList[index].fullDate);
+    // Preserve the time from the current date
+    newDate.setHours(date.getHours(), date.getMinutes());
+    setDate(newDate);
+  };
 
   // Function to save goal to Firestore
   const saveGoal = async () => {
@@ -76,11 +124,28 @@ export default function CreateGoalScreen() {
     }
   };
 
-  // Handle date change
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
+  // Handle date/time change
+  const onDateTimeChange = (event, selectedDateTime) => {
+    const currentDateTime = selectedDateTime || date;
     setShowDatePicker(false);
-    setDate(currentDate);
+    
+    if (pickerMode === 'date') {
+      // If changing date, preserve the time from current date
+      const newDate = new Date(currentDateTime);
+      newDate.setHours(date.getHours(), date.getMinutes());
+      setDate(newDate);
+    } else {
+      // If changing time, preserve the date but update the time
+      const newDate = new Date(date);
+      newDate.setHours(currentDateTime.getHours(), currentDateTime.getMinutes());
+      setDate(newDate);
+    }
+  };
+
+  // Function to show date picker
+  const showDatePickerModal = (mode) => {
+    setPickerMode(mode);
+    setShowDatePicker(true);
   };
 
   return (
@@ -94,41 +159,56 @@ export default function CreateGoalScreen() {
       <Text style={styles.headerTitle}>GOALS</Text>
       
       <View style={styles.calendarContainer}>
-        {['23', '24', '25', '26', '27'].map((day, index) => (
-          <View 
+        {daysList.map((day, index) => (
+          <TouchableOpacity 
             key={index} 
             style={[
               styles.dayContainer, 
-              index === 2 && styles.selectedDayContainer
+              index === selectedDayIndex && styles.selectedDayContainer
             ]}
+            onPress={() => handleDaySelection(index)}
           >
-            <Text style={styles.dayText}>{day}</Text>
-            <Text style={styles.weekdayText}>
-              {index === 0 ? 'Sun' : index === 1 ? 'Mon' : index === 2 ? 'Tue' : index === 3 ? 'Wed' : 'Thu'}
-            </Text>
-            {index === 2 && <View style={styles.selectedIndicator} />}
-          </View>
+            <Text style={styles.dayText}>{day.date}</Text>
+            <Text style={styles.weekdayText}>{day.day}</Text>
+            {index === selectedDayIndex && <View style={styles.selectedIndicator} />}
+          </TouchableOpacity>
         ))}
       </View>
       
       <View style={styles.dateTextContainer}>
-        <Text style={styles.dateText}>May 2023</Text>
+        <Text style={styles.dateText}>{formatDate(date)}</Text>
       </View>
       
       <View style={styles.createFormContainer}>
-        <TouchableOpacity style={styles.timeSelector} onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.timeDisplay}>
-            Start: {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - End: {new Date(date.getTime() + 3600000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.dateTimeSelectors}>
+          <TouchableOpacity 
+            style={styles.dateSelector} 
+            onPress={() => showDatePickerModal('date')}
+          >
+            <Text style={styles.dateTimeLabel}>Date:</Text>
+            <Text style={styles.dateTimeDisplay}>
+              {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.timeSelector} 
+            onPress={() => showDatePickerModal('time')}
+          >
+            <Text style={styles.dateTimeLabel}>Time:</Text>
+            <Text style={styles.dateTimeDisplay}>
+              {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </TouchableOpacity>
+        </View>
         
         {showDatePicker && (
           <DateTimePicker
             value={date}
-            mode="time"
+            mode={pickerMode}
             is24Hour={false}
             display="default"
-            onChange={onDateChange}
+            onChange={onDateTimeChange}
           />
         )}
         
@@ -175,7 +255,7 @@ export default function CreateGoalScreen() {
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-            <Text style={styles.cancelButtonText}>cancel</Text>
+            <Text style={styles.cancelButtonText}>CANCEL</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -250,14 +330,31 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     padding: 20,
   },
-  timeSelector: {
-    alignItems: 'center',
+  dateTimeSelectors: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  dateSelector: {
+    flex: 1,
     padding: 15,
     backgroundColor: '#f8f8f8',
     borderRadius: 10,
-    marginBottom: 20,
+    marginRight: 10,
   },
-  timeDisplay: {
+  timeSelector: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    marginLeft: 10,
+  },
+  dateTimeLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 5,
+  },
+  dateTimeDisplay: {
     fontSize: 16,
     fontWeight: 'bold',
   },
