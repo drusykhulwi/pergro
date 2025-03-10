@@ -1,4 +1,3 @@
-// resolution/index.js (Resolution List Screen)
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -66,7 +65,7 @@ export default function ResolutionsScreen() {
         <TouchableOpacity 
           style={styles.resolutionCard}
           onPress={() => router.push({
-            pathname: 'resolution/create',
+            pathname: '/CreateResolutionScreen',
             params: { resolutionId: item.id }
           })}
         >
@@ -94,7 +93,7 @@ export default function ResolutionsScreen() {
         
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => router.push('resolution/create')}
+          onPress={() => router.push('/CreateResolutionScreen')}
         >
           <Text style={styles.addButtonText}>ADD</Text>
         </TouchableOpacity>

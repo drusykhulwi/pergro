@@ -95,7 +95,7 @@ const CustomAddButton = () => {
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem}>
                             <Ionicons name="glasses-outline" size={24} color="#FF9900" />
-                            <Link href="resolution" style={styles.menuText}>Resolutions</Link>
+                            <Link href="CreateResolutionScreen" style={styles.menuText}>Resolutions</Link>
                         </TouchableOpacity>
 
                         {/* Close Button */}
