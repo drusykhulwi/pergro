@@ -1,11 +1,12 @@
+// resolution.js (Resolution List Screen)
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ResolutionsScreen() {
+export default function ResolutionScreen() {
   const router = useRouter();
   const [resolutions, setResolutions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,25 +30,48 @@ export default function ResolutionsScreen() {
       }));
       
       setResolutions(resolutionsList);
-      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching resolutions: ", error);
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // Format date to display
+  // Format date to display - improved timestamp handling
   const formatDate = (date) => {
     if (!date) return '';
-    let timestamp;
-    if (date.seconds) {
-      timestamp = new Date(date.seconds * 1000);
-    } else if (date instanceof Date) {
-      timestamp = date;
-    } else {
+    
+    try {
+      let timestamp;
+      if (typeof date === 'object' && date.seconds) {
+        // Firestore Timestamp
+        timestamp = new Date(date.seconds * 1000);
+      } else if (date instanceof Date) {
+        timestamp = date;
+      } else if (typeof date === 'string') {
+        timestamp = new Date(date);
+      } else {
+        return '';
+      }
+      
+      return timestamp.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+    } catch (error) {
+      console.error("Date formatting error:", error);
       return '';
     }
-    return timestamp.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+  };
+
+  // Navigate to create resolution screen
+  const navigateToCreateResolution = () => {
+    router.push('CreateResolutionScreen');
+  };
+
+  // Navigate to edit resolution screen
+  const navigateToEditResolution = (resolutionId) => {
+    router.push({
+      pathname: 'CreateResolutionScreen',
+      params: { resolutionId }
+    });
   };
 
   const renderResolutionItem = ({ item, index }) => {
@@ -64,13 +88,10 @@ export default function ResolutionsScreen() {
         
         <TouchableOpacity 
           style={styles.resolutionCard}
-          onPress={() => router.push({
-            pathname: '/CreateResolutionScreen',
-            params: { resolutionId: item.id }
-          })}
+          onPress={() => navigateToEditResolution(item.id)}
         >
           <View style={styles.resolutionContent}>
-            <Text style={styles.resolutionTitle}>{item.title}</Text>
+            <Text style={styles.resolutionTitle}>{item.title || 'Untitled'}</Text>
             {item.dueDate && (
               <View style={styles.dateContainer}>
                 <Ionicons name="calendar-outline" size={14} color="#888" />
@@ -93,7 +114,7 @@ export default function ResolutionsScreen() {
         
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => router.push('/CreateResolutionScreen')}
+          onPress={navigateToCreateResolution}
         >
           <Text style={styles.addButtonText}>ADD</Text>
         </TouchableOpacity>
@@ -101,19 +122,31 @@ export default function ResolutionsScreen() {
       
       <Text style={styles.headerTitle}>RESOLUTIONS</Text>
       
-      <FlatList
-        data={resolutions}
-        renderItem={renderResolutionItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={
-          !isLoading && (
-            <Text style={styles.emptyText}>
-              No resolutions yet. Tap 'ADD' to create one.
-            </Text>
-          )
-        }
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF3B30" />
+        </View>
+      ) : (
+        <FlatList
+          data={resolutions}
+          renderItem={renderResolutionItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                No resolutions yet. Tap 'ADD' to create one.
+              </Text>
+              <TouchableOpacity 
+                style={styles.emptyAddButton}
+                onPress={navigateToCreateResolution}
+              >
+                <Text style={styles.emptyAddButtonText}>ADD RESOLUTION</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -152,6 +185,7 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+    flexGrow: 1,
   },
   resolutionItemContainer: {
     flexDirection: 'row',
@@ -207,10 +241,31 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 4,
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 40,
+  },
   emptyText: {
     color: '#888',
     textAlign: 'center',
-    marginTop: 40,
+    marginBottom: 20,
+  },
+  emptyAddButton: {
+    backgroundColor: '#FF3B30',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  emptyAddButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
-

@@ -1,38 +1,52 @@
-// resolution/create.js (Create/Edit Resolution Screen)
+// createresolution.js (Create/Edit Resolution Screen)
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { collection, addDoc, getDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateResolutionScreen() {
   const router = useRouter();
-  const { resolutionId } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const resolutionId = params?.resolutionId;
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   
   // Fetch resolution details if editing an existing resolution
   useEffect(() => {
     const fetchResolution = async () => {
       if (resolutionId) {
         try {
+          setIsEditing(true);
           const resolutionDoc = await getDoc(doc(db, 'resolutions', resolutionId));
+          
           if (resolutionDoc.exists()) {
             const resolutionData = resolutionDoc.data();
             setTitle(resolutionData.title || '');
             setDescription(resolutionData.description || '');
             
-            // Handle different date formats
-            if (resolutionData.dueDate?.seconds) {
-              setDate(new Date(resolutionData.dueDate.seconds * 1000));
-            } else if (resolutionData.dueDate instanceof Date) {
-              setDate(resolutionData.dueDate);
+            // Handle different date formats safely
+            try {
+              if (resolutionData.dueDate) {
+                if (resolutionData.dueDate.seconds) {
+                  // Firestore Timestamp
+                  setDate(new Date(resolutionData.dueDate.seconds * 1000));
+                } else if (resolutionData.dueDate instanceof Date) {
+                  setDate(resolutionData.dueDate);
+                } else if (typeof resolutionData.dueDate === 'string') {
+                  setDate(new Date(resolutionData.dueDate));
+                }
+              }
+            } catch (dateError) {
+              console.error("Error parsing date:", dateError);
+              // Keep the default current date
             }
           }
         } catch (error) {
@@ -46,45 +60,54 @@ export default function CreateResolutionScreen() {
 
   // Function to save resolution to Firestore
   const saveResolution = async () => {
+    if (!title.trim()) {
+      alert('Please enter a title for your resolution');
+      return;
+    }
+
     try {
       setIsLoading(true);
       
-      if (!title.trim()) {
-        alert('Please enter a title for your resolution');
-        setIsLoading(false);
-        return;
-      }
-
       const resolutionData = {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         dueDate: date,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       };
 
-      if (resolutionId) {
+      if (isEditing && resolutionId) {
         // Update existing resolution
         await updateDoc(doc(db, 'resolutions', resolutionId), resolutionData);
       } else {
         // Add new resolution
+        resolutionData.createdAt = serverTimestamp();
         await addDoc(collection(db, 'resolutions'), resolutionData);
       }
 
-      setIsLoading(false);
       router.back();
     } catch (error) {
       console.error("Error saving resolution: ", error);
       alert('Failed to save resolution. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
 
   // Handle date change
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
     setShowDatePicker(false);
-    setDate(currentDate);
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
+  const formatDisplayDate = (date) => {
+    try {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (error) {
+      console.error("Error formatting display date:", error);
+      return "Select a date";
+    }
   };
 
   return (
@@ -125,7 +148,7 @@ export default function CreateResolutionScreen() {
         >
           <Text style={styles.dateTimeLabel}>Due Date:</Text>
           <Text style={styles.dateTimeDisplay}>
-            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {formatDisplayDate(date)}
           </Text>
         </TouchableOpacity>
         
@@ -144,12 +167,18 @@ export default function CreateResolutionScreen() {
             onPress={saveResolution}
             disabled={isLoading}
           >
-            <Text style={styles.createButtonText}>CREATE</Text>
+            <Text style={styles.createButtonText}>
+              {isLoading ? "SAVING..." : (isEditing ? "UPDATE" : "CREATE")}
+            </Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-            <Text style={styles.cancelButtonText}>CANCEL</Text>
-          </TouchableOpacity>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#FF3B30" style={styles.loadingIndicator} />
+          ) : (
+            <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
+              <Text style={styles.cancelButtonText}>CANCEL</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -238,5 +267,8 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#888',
     fontSize: 14,
+  },
+  loadingIndicator: {
+    marginTop: 10,
   },
 });
