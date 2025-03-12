@@ -36,15 +36,17 @@ export default function Index() {
             <Image source={require('../../assets/images/Polygon2.png')}/>
           </View>
         </View>
-        <View style={styles.progressBar}>
-          <View style={styles.textContainer}>
-            <Text style={styles.smalltext}>Relationship</Text>
-            <Text style={styles.smalltext}>Call Mum</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('RelationshipsScreen')}>
+          <View style={styles.progressBar}>
+            <View style={styles.textContainer}>
+              <Text style={styles.smalltext}>Relationship</Text>
+              <Text style={styles.smalltext}>Call Mum</Text>
+            </View>
+            <View style={styles.images}>
+              <Image source={require('../../assets/images/Polygon3.png')} />
+            </View>
           </View>
-          <View style={styles.images}>
-            <Image source={require('../../assets/images/Polygon3.png')}/>
-          </View>
-        </View>
+        </TouchableOpacity>
         <View style={styles.progressBar}>
           <View style={styles.textContainer}>
             <Text style={styles.smalltext}>Resolutions</Text>
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
   text: {
     color: "#ffffff",
     fontSize: 34,
-    fontWeight: 400,
+    fontWeight: "400",
     top: -75,
     left: -35,
   },
