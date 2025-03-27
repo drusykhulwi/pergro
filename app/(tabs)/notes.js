@@ -12,10 +12,12 @@ export default function Notes() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back-circle-outline" size={32} color="#ffffff" />
         </TouchableOpacity>
-        <View style={styles.addButton}>
-          <Text style={styles.text}>ADD</Text>
-          <Ionicons name="add" size={32} color="#ffffff" />
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('NotesCreate')}>
+          <View style={styles.addButton}>
+            <Text style={styles.text}>ADD</Text>
+            <Ionicons name="add" size={32} color="#ffffff" />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Search Button */}

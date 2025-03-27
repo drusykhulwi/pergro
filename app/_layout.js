@@ -15,6 +15,8 @@ export default function RootLayout() {
         presentation: 'modal'
       }} 
     />
+    <Stack.Screen name="NotesCreate" options={{ title: "NotesCreate" }} />
+    
     <Stack.Screen name="+not-found" />
   </Stack>;
 }
