@@ -3,6 +3,21 @@ import { Stack } from "expo-router";
 export default function RootLayout() {
   return <Stack>
     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    {/* Splash Screen */}
+    <Stack.Screen 
+        name="index" 
+        options={{ 
+          headerShown: false 
+        }} 
+      />
+
+      {/* Onboarding Screen */}
+      <Stack.Screen 
+        name="Onboarding" 
+        options={{ 
+          headerShown: false 
+        }} 
+      />
     <Stack.Screen name="task" options={{ title: "Tasks" }}/>
     <Stack.Screen name="goal" options={{ title: "Goals" }}/>
     <Stack.Screen name="ResolutionsScreen" options={{ title: "Resolutions" }}/>
